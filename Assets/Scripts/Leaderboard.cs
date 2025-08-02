@@ -70,7 +70,7 @@ public class Leaderboard : MonoBehaviour
 
     public IEnumerator GetText(string url = server, string body = "", Action<string> onMessageReceived = null)
     {
-        UnityWebRequest request = UnityWebRequest.Post(url, body);
+        UnityWebRequest request = UnityWebRequest.PostWwwForm(url, body);
         yield return request.SendWebRequest();
 
         if (request.result != UnityWebRequest.Result.Success)
