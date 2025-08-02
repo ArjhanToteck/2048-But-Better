@@ -36,8 +36,8 @@ public class Game : MonoBehaviour
 	public long Score
 	{
 		get
-		{ 
-			return score; 
+		{
+			return score;
 		}
 
 		set
@@ -51,7 +51,7 @@ public class Game : MonoBehaviour
 			}
 		}
 	}
-	
+
 	private void Awake()
 	{
 		// loads settings
@@ -72,7 +72,7 @@ public class Game : MonoBehaviour
 	}
 
 	void LoadGame()
-    {
+	{
 		moves = SaveData.savedGame.moves;
 		score = SaveData.savedGame.score;
 
@@ -150,7 +150,8 @@ public class Game : MonoBehaviour
 								// continues as rest of code applies only to empty tiles
 								continue;
 							}
-						};
+						}
+						;
 
 						// loops through tiles below
 						int movedTiles = 0;
@@ -229,7 +230,8 @@ public class Game : MonoBehaviour
 								// continues as rest of code applies only to empty tiles
 								continue;
 							}
-						};
+						}
+						;
 
 						// loops through tiles above
 						int movedTiles = 0;
@@ -308,7 +310,8 @@ public class Game : MonoBehaviour
 								// continues as rest of code applies only to empty tiles
 								continue;
 							}
-						};
+						}
+						;
 
 						// loops through tiles to right
 						int movedTiles = 0;
@@ -387,7 +390,8 @@ public class Game : MonoBehaviour
 								// continues as rest of code applies only to empty tiles
 								continue;
 							}
-						};
+						}
+						;
 
 						// loops through tiles below
 						int movedTiles = 0;
@@ -425,7 +429,7 @@ public class Game : MonoBehaviour
 							}
 						}
 					}
-				}				
+				}
 			}
 
 			if (keyPressed) CheckForGameOver();
@@ -436,7 +440,7 @@ public class Game : MonoBehaviour
 				RandomTile();
 				audioManager.ClickSound();
 			}
-		}		
+		}
 	}
 
 	/*void StopAllMovements()
@@ -487,7 +491,7 @@ public class Game : MonoBehaviour
 			grid[randomCoords.y, randomCoords.x] = newTile;
 		}
 
-		if(!gameOver) CheckForGameOver();
+		if (!gameOver) CheckForGameOver();
 	}
 
 	void CheckForGameOver()
@@ -529,7 +533,6 @@ public class Game : MonoBehaviour
 					if ((y + 1 < height && grid[y + 1, x].GetComponent<Tile>().value == value) || (y > 0 && grid[y - 1, x].GetComponent<Tile>().value == value) || (x + 1 < width && grid[y, x + 1].GetComponent<Tile>().value == value) || (x > 0 && grid[y, x - 1].GetComponent<Tile>().value == value))
 					{
 						// declares there is space left and exits loop
-						Debug.Log(x + ", " + y);
 						possibleMoves = true;
 						break;
 					}
@@ -553,7 +556,7 @@ public class Game : MonoBehaviour
 		{
 			for (int x = 0; x < width; x++)
 			{
-				if(grid[y, x] != null) grid[y, x].GetComponent<Tile>().recentlyMerged = false;
+				if (grid[y, x] != null) grid[y, x].GetComponent<Tile>().recentlyMerged = false;
 			}
 		}
 	}
@@ -575,16 +578,19 @@ public class Game : MonoBehaviour
 
 	void GameOver()
 	{
+		SaveData.savedGame.score = score;
+		Debug.Log(score);
+
 		// marks game as finished
 		gameOver = true;
 
 		List<SaveData.GameSave> bestGamesList = new List<SaveData.GameSave>(SaveData.bestGames);
 
 		// loops through best games in reverse order
-		for(int i = 9; i >= 0; i--)
+		for (int i = 9; i >= 0; i--)
 		{
 			// checks if either no game or lower score in current game
-			if(SaveData.bestGames[i] == null || SaveData.bestGames[i].score < score)
+			if (SaveData.bestGames[i] == null || SaveData.bestGames[i].score < score)
 			{
 				// inserts game
 				bestGamesList.Insert(i, GetGameSave());
@@ -632,7 +638,7 @@ public class Game : MonoBehaviour
 			{
 				// shows game over panel
 				gameOverPanel.SetActive(true);
-				gameOverPanel.transform.Find("Score").GetComponent<TMP_Text>().text = $"Score: {SaveData.savedGame.score}\nBest: {SaveData.highScore}";
+				gameOverPanel.transform.Find("Score").GetComponent<TMP_Text>().text = $"Score: {score}\nBest: {SaveData.highScore}";
 
 				if (customText != null)
 				{
@@ -656,7 +662,7 @@ public class Game : MonoBehaviour
 			}
 		});
 
-		
+
 	}
 
 	public void AddToScore(long value)
@@ -669,7 +675,7 @@ public class Game : MonoBehaviour
 	{
 		string output = "";
 
-		for(int y = height - 1; y >= 0; y--)
+		for (int y = height - 1; y >= 0; y--)
 		{
 			for (int x = 0; x < width; x++)
 			{
@@ -692,7 +698,7 @@ public class Game : MonoBehaviour
 	{
 		SaveData.savedGame = GetGameSave();
 		SaveData.Save();
-    }
+	}
 
 	void OnDestroy()
 	{
