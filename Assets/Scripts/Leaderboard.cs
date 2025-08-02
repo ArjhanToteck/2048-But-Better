@@ -1,61 +1,83 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class Leaderboard : MonoBehaviour
+public partial class Leaderboard : MonoBehaviour
 {
-    const string server = "https://2048-but-better-server.arjhantoteck.repl.co/";
+    const string server = "http://localhost:3000/api/projects/2048ButBetterServer/";
 
     public bool showLeaderboard = false;
 
     // Start is called before the first frame update
     void Start()
     {
-		if (showLeaderboard)
-		{
+        if (showLeaderboard)
+        {
             try
             {
-                StartCoroutine(GetText(server + "getLeaderboard", "", output => {
-                    Score[] scores = JsonUtility.FromJson<ArrayWrapper>(output).array;
+                // get leaderboard from server
+                StartCoroutine(GetText(server + "getLeaderboard", "", output =>
+                {
 
+                    // parse scores
+                    Score[] scores = JsonUtility.FromJson<Score.ScoreArray>(output).items;
+                    Debug.Log(scores);
+
+                    // render scores
                     GetComponent<TMP_Text>().text = "";
 
-                    for(int i = 0; i < scores.Length; i++)
+                    for (int i = 0; i < scores.Length; i++)
                     {
+                        Debug.Log($"{i + 1}. {scores[i].name}: {scores[i].score}\n");
                         GetComponent<TMP_Text>().text += $"{i + 1}. {scores[i].name}: {scores[i].score}\n";
                     }
                 }));
             }
-            catch { }
+            catch
+            {
+                Debug.LogError("Error getting leaderboard from server.");
+            }
         }
     }
 
-    public void CheckWorldRecord(Action<int> onMessageReceived)
-	{
+    public void CheckWorldRecord(Action<int> callback)
+    {
+        // score of 0 skipped
+        if (SaveData.savedGame.score <= 0)
+        {
+            Debug.Log("nah");
+            callback?.Invoke(-1);
+        }
+
         try
         {
-            StartCoroutine(GetText(server + "checkScore", JsonUtility.ToJson(new Score("", SaveData.savedGame.score, true)), output => {
+            // check rank of current score
+            StartCoroutine(GetText(server + "getRank", JsonUtility.ToJson(new Score("", SaveData.savedGame.score)), output =>
+            {
+                // default of -1 means not on leaderboard at all
                 int rank = -1;
                 Debug.Log(output);
 
                 try
-				{
+                {
                     rank = int.Parse(output);
-				}
+                }
                 catch
                 {
-                    onMessageReceived(-1);
+                    Debug.LogError("Error checking score.");
                 }
 
-                onMessageReceived(rank);
+                callback?.Invoke(rank);
             }));
         }
         catch
         {
-            onMessageReceived(-1);
+            // return default
+            callback?.Invoke(-1);
         }
     }
 
@@ -63,14 +85,27 @@ public class Leaderboard : MonoBehaviour
     {
         try
         {
-            StartCoroutine(GetText(server + "sendScore", JsonUtility.ToJson(new Score(name, SaveData.savedGame.score, true)), output => {}));
+            StartCoroutine(GetText(server + "sendScore", JsonUtility.ToJson(new Score(name, SaveData.savedGame.score)), output => { }));
         }
-        catch { }
+        catch
+        {
+            Debug.LogError("Error sending record to server.");
+        }
     }
 
-    public IEnumerator GetText(string url = server, string body = "", Action<string> onMessageReceived = null)
+    public IEnumerator GetText(string url = server, string body = "", Action<string> callback = null)
     {
-        UnityWebRequest request = UnityWebRequest.PostWwwForm(url, body);
+        UnityWebRequest request = new UnityWebRequest(url, "GET");
+        request.downloadHandler = new DownloadHandlerBuffer();
+
+        if (body != "")
+        {
+            // convert string body to raw JSON bytes
+            byte[] jsonBytes = Encoding.UTF8.GetBytes(body);
+            request.uploadHandler = new UploadHandlerRaw(jsonBytes);
+            request.SetRequestHeader("Content-Type", "application/json");
+        }
+
         yield return request.SendWebRequest();
 
         if (request.result != UnityWebRequest.Result.Success)
@@ -80,28 +115,7 @@ public class Leaderboard : MonoBehaviour
         else
         {
             string response = request.downloadHandler.text;
-            if(onMessageReceived != null) onMessageReceived(response);
+            callback?.Invoke(response);
         }
     }
-
-    [Serializable]
-    class Score
-	{
-        public string name;
-        public long score;
-        public bool set;
-
-		public Score(string nameInput, long scoreInput, bool setInput)
-		{
-            name = nameInput;
-            score = scoreInput;
-            set = setInput;
-		}
-	}
-
-    [Serializable]
-    class ArrayWrapper
-	{
-        public Score[] array;
-	}
 }
