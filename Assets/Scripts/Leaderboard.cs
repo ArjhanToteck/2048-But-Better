@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 
 public partial class Leaderboard : MonoBehaviour
 {
-    const string server = "http://localhost:3000/api/projects/2048ButBetterServer/";
+    const string server = "https://arjhantoteck.vercel.app/api/projects/2048ButBetterServer/";
 
     public bool showLeaderboard = false;
 
